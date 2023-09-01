@@ -26,7 +26,7 @@ public class editCreate extends AppCompatActivity {
 
     SharedPreferences sharedPreferences;
     EditText msg;
-    CheckBox sendBatterylevel,sendSignallevel;
+    CheckBox sendBatterylevel,sendSignallevel,ringDevice;
     Button done,delete;
 
     @Override
@@ -39,6 +39,7 @@ public class editCreate extends AppCompatActivity {
         delete=findViewById(R.id.btn_delete);
         sendSignallevel=findViewById(R.id.chk_signalLevel);
         sendBatterylevel=findViewById(R.id.chk_batteryLevel);
+        ringDevice=findViewById(R.id.chk_ring_phone);
 
         Intent intent=getIntent();
         int x=intent.getIntExtra("value",0);
@@ -66,12 +67,13 @@ public class editCreate extends AppCompatActivity {
     }
 
     private void show_details(int x){
-        String message,battery,signal;
+        String message,battery,signal,strringDevice;
         sharedPreferences=getSharedPreferences("sendMessage", Context.MODE_PRIVATE);
 
         message=sharedPreferences.getString(x+"message","");
         battery=sharedPreferences.getString(x+"battery_level","");
         signal=sharedPreferences.getString(x+"signal_level","");
+        strringDevice=sharedPreferences.getString(x+"ring_device","");
 
         msg.setText(message);
         if(battery.equals("true")){
@@ -79,6 +81,9 @@ public class editCreate extends AppCompatActivity {
         }
         if (signal.equals("true")){
             sendSignallevel.setChecked(true);
+        }
+        if(strringDevice.equals("true")){
+            ringDevice.setChecked(true);
         }
     }
 
@@ -101,6 +106,12 @@ public class editCreate extends AppCompatActivity {
             else {
                 editor.putString(count+"signal_level","false");
             }
+            if(ringDevice.isChecked()){
+                editor.putString(count+"ring_device","true");
+            }
+            else {
+                editor.putString(count+"ring_device","false");
+            }
             editor.commit();
             Intent intent=new Intent(editCreate.this,MainActivity.class);
             startActivity(intent);
@@ -113,7 +124,7 @@ public class editCreate extends AppCompatActivity {
     }
 
     private void delete(int number){
-        String message,battery,signal;
+        String message,battery,signal,strringDevice;
         int count;
         sharedPreferences=getSharedPreferences("sendMessage", Context.MODE_PRIVATE);
         count=sharedPreferences.getInt("count",0);
@@ -123,9 +134,11 @@ public class editCreate extends AppCompatActivity {
                 message=sharedPreferences.getString(x+"message","");
                 battery=sharedPreferences.getString(x+"battery_level","");
                 signal=sharedPreferences.getString(x+"signal_level","");
+                strringDevice=sharedPreferences.getString(x+"ring_device","");
                 editor.putString((x-1)+"message",message);
                 editor.putString((x-1)+"battery_level",battery);
                 editor.putString((x-1)+"signal_level",signal);
+                editor.putString((x-1)+"ring_device",strringDevice);
             }
         }
         editor.putInt("count",count-=1);

@@ -18,6 +18,8 @@ import android.database.Cursor;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.BatteryManager;
 import android.os.Build;
@@ -41,12 +43,15 @@ public class foreground_Activity extends Service {
     ArrayList<String> messageItemList = new ArrayList<>();
     ArrayList<String>signalItemList=new ArrayList<>();
     ArrayList<String>batteryItemList=new ArrayList<>();
+    ArrayList<String>ringDeviceItemList=new ArrayList<>();
     SharedPreferences sharedPreferences;
     LocationManager locationManager;
     LocationListener locationListener;
     double latitude;
     double longitude;
     boolean isGPSActive;
+    MediaPlayer mediaPlayer;
+    AudioManager audioManager;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         imagebrc = new ReciverBroadcastReceiver();
@@ -98,6 +103,7 @@ public class foreground_Activity extends Service {
         @SuppressLint("MissingPermission")
         @Override
         public void onReceive(Context context, Intent intent) {
+            String ringState="";
             String From = intent.getStringExtra("from");
             String message_text = intent.getStringExtra("message");
             Log.e("recieved",From+" msg "+message_text);
@@ -105,10 +111,20 @@ public class foreground_Activity extends Service {
             for(int x=0;x<messageItemList.size();x++){
                 if(message_text.equals(messageItemList.get(x))){
                     if(isGPSActive){
+
+                        if(ringDeviceItemList.get(x).equals("true")){
+                            ringState="\n\nRinging.......";
+                            playWarning();
+                        }
+
+                        else {
+                            ringState="";
+                        }
+
                         if(batteryItemList.get(x).equals("true") && signalItemList.get(x).equals("true")){
                             int batLevel = batteryLevel();
                             String signalLevel=signalStatus();
-                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\n"+"Battery Level is: "+String.valueOf(batLevel)+"%\n\n"+"Signal Level is: "+String.valueOf(signalLevel)+"\n\nSent by Happy GPS!";
+                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+String.valueOf(longitude)+"\n\n"+"Battery Level is: "+String.valueOf(batLevel)+"%\n\n"+"Signal Level is: "+String.valueOf(signalLevel)+ringState+"\n\nSent by Guardian Track!";
 
                             if(From.contains("+")){
                                 smsManager.sendTextMessage(From, null, secure_msg, null, null);
@@ -122,7 +138,7 @@ public class foreground_Activity extends Service {
 
                         else if(batteryItemList.get(x).equals("true") && signalItemList.get(x).equals("false")){
                             int batLevel = batteryLevel();
-                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\n"+"Battery Level is: "+String.valueOf(batLevel)+"%\n\nSent by Happy GPS!";
+                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\n"+"Battery Level is: "+String.valueOf(batLevel)+"%"+ringState+"\n\nSent by Guardian Track!";
 
                             if(From.contains("+")){
                                 smsManager.sendTextMessage(From, null, secure_msg, null, null);
@@ -136,7 +152,7 @@ public class foreground_Activity extends Service {
 
                         else if(signalItemList.get(x).equals("true") && batteryItemList.get(x).equals("false") ){
                             String signalLevel=signalStatus();
-                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\n"+"Signal Level is: "+String.valueOf(signalLevel)+"\n\nSent by Happy GPS!";
+                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\n"+"Signal Level is: "+String.valueOf(signalLevel)+ringState+"\n\nSent by Guardian Track!";
 
                             if(From.contains("+")){
                                 smsManager.sendTextMessage(From, null, secure_msg, null, null);
@@ -149,7 +165,7 @@ public class foreground_Activity extends Service {
                         }
 
                         else if(batteryItemList.get(x).equals("false") && signalItemList.get(x).equals("false")){
-                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\nSent by Happy GPS!";
+                            String secure_msg="Location is: https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+ringState+"\n\nSent by Guardian Track!";
 
                             if(From.contains("+")){
                                 smsManager.sendTextMessage(From, null, secure_msg, null, null);
@@ -161,9 +177,22 @@ public class foreground_Activity extends Service {
                             break;
                         }
                     }
-                    else {
-                        String secure_msg="Happy GPS is unable to send the location because Location is turned OFF on the target device.\n\nSent by Happy GPS!";
 
+                    else if(latitude!=0.0 && longitude!=0.0) {
+                        String secure_msg="Seems the location service is turned OFF \n\nLast Location is:- https://www.google.com/maps/place/"+String.valueOf(latitude)+","+String.valueOf(longitude)+"\n\nSent by Guardian Track!";
+
+                        if(From.contains("+")){
+                            smsManager.sendTextMessage(From, null, secure_msg, null, null);
+                        }
+                        else{
+                            String phone=getContactNumberFromName(From);
+                            smsManager.sendTextMessage(phone, null, secure_msg, null, null);
+                        }
+                        break;
+                    }
+
+                    else{
+                        String secure_msg="Seems the location because Location is turned OFF on the target device.\n\nSent by Guardian Track!";
                         if(From.contains("+")){
                             smsManager.sendTextMessage(From, null, secure_msg, null, null);
                         }
@@ -264,7 +293,7 @@ public class foreground_Activity extends Service {
     }
 
     public void readMessages(){
-        String message,battery,signal;
+        String message,battery,signal,strringDevice;
         int count;
         sharedPreferences=getSharedPreferences("sendMessage", Context.MODE_PRIVATE);
         count=sharedPreferences.getInt("count",0);
@@ -274,11 +303,22 @@ public class foreground_Activity extends Service {
                 message=sharedPreferences.getString(x+"message","");
                 battery=sharedPreferences.getString(x+"battery_level","");
                 signal=sharedPreferences.getString(x+"signal_level","");
+                strringDevice=sharedPreferences.getString(x+"ring_device","");
                 messageItemList.add(message);
                 batteryItemList.add(battery);
-                signalItemList.add(String.valueOf(signal));
+                signalItemList.add(signal);
+                ringDeviceItemList.add(strringDevice);
             }
         }
+    }
+
+    private void playWarning(){
+        mediaPlayer = MediaPlayer.create(foreground_Activity.this, R.raw.alarm);
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        mediaPlayer.start();
+        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,
+                audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC),
+                AudioManager.FLAG_PLAY_SOUND);
     }
 
 

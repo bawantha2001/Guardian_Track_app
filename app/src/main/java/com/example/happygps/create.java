@@ -27,7 +27,7 @@ import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback;
 
 public class create extends AppCompatActivity {
     EditText msg;
-    CheckBox sendBatterylevel,sendSignallevel;
+    CheckBox sendBatterylevel,sendSignallevel,ringDevice;
     Button done;
     SharedPreferences sharedPreferences;
 
@@ -41,6 +41,7 @@ public class create extends AppCompatActivity {
         done=findViewById(R.id.btn_done);
         sendSignallevel=findViewById(R.id.chk_signalLevel);
         sendBatterylevel=findViewById(R.id.chk_batteryLevel);
+        ringDevice=findViewById(R.id.chk_ring_phone);
 
         done.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,6 +82,12 @@ public class create extends AppCompatActivity {
             else {
                 editor.putString(count+"signal_level","false");
             }
+            if(ringDevice.isChecked()){
+                editor.putString(count+"ring_device","true");
+            }
+            else {
+                editor.putString(count+"ring_device","false");
+            }
             editor.commit();
             Intent intent=new Intent(create.this,MainActivity.class);
             startActivity(intent);
@@ -104,6 +111,12 @@ public class create extends AppCompatActivity {
             }
             else {
                 editor.putString(1+"signal_level","false");
+            }
+            if(ringDevice.isChecked()){
+                editor.putString(count+"ring_device","true");
+            }
+            else {
+                editor.putString(count+"ring_device","false");
             }
             editor.commit();
             Intent intent=new Intent(create.this,MainActivity.class);
