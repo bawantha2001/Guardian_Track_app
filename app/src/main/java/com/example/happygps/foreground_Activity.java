@@ -16,6 +16,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.Uri;
 import android.os.BatteryManager;
@@ -42,9 +43,10 @@ public class foreground_Activity extends Service {
     ArrayList<String>batteryItemList=new ArrayList<>();
     SharedPreferences sharedPreferences;
     LocationManager locationManager;
-    android.location.LocationListener locationListener;
+    LocationListener locationListener;
     double latitude;
     double longitude;
+    boolean isGPSActive;
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         imagebrc = new ReciverBroadcastReceiver();
@@ -102,7 +104,7 @@ public class foreground_Activity extends Service {
 
             for(int x=0;x<messageItemList.size();x++){
                 if(message_text.equals(messageItemList.get(x))){
-                    if(latitude!=0 && longitude!=0){
+                    if(isGPSActive){
                         if(batteryItemList.get(x).equals("true") && signalItemList.get(x).equals("true")){
                             int batLevel = batteryLevel();
                             String signalLevel=signalStatus();
@@ -210,6 +212,7 @@ public class foreground_Activity extends Service {
             public void onLocationChanged(@NonNull Location location) {
                 latitude = location.getLatitude();
                 longitude = location.getLongitude();
+                isGPSActive=true;
                 Log.e("Locationlongi",String.valueOf(longitude));
             }
             public void onStatusChanged(@NonNull String provider, int status, Bundle extras) {
@@ -221,14 +224,13 @@ public class foreground_Activity extends Service {
 
 
             public void onProviderDisabled(@NonNull String provider) {
-                longitude=0.0;
-                latitude=0.0;
+                isGPSActive=false;
                 Log.e("Locationlongi",String.valueOf(longitude));
             }
         };
 
         try {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                     1000,(float)0.01,locationListener);
         } catch (SecurityException e) {
             e.printStackTrace();
