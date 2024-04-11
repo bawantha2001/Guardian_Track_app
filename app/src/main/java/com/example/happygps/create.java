@@ -113,10 +113,10 @@ public class create extends AppCompatActivity {
                 editor.putString(1+"signal_level","false");
             }
             if(ringDevice.isChecked()){
-                editor.putString(count+"ring_device","true");
+                editor.putString(1+"ring_device","true");
             }
             else {
-                editor.putString(count+"ring_device","false");
+                editor.putString(1+"ring_device","false");
             }
             editor.commit();
             Intent intent=new Intent(create.this,MainActivity.class);

@@ -74,7 +74,7 @@ public class foreground_Activity extends Service {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             getSystemService(NotificationManager.class).createNotificationChannel(channel);
             Notification.Builder notification=new Notification.Builder(this,CHANNELID)
-                    .setContentText("Happy GPS is running")
+                    .setContentText("Guardian Track is running")
                     .setSmallIcon(R.drawable.app_icon);
             startForeground(1001,notification.build());
         }
@@ -192,7 +192,7 @@ public class foreground_Activity extends Service {
                     }
 
                     else{
-                        String secure_msg="Seems the location because Location is turned OFF on the target device.\n\nSent by Guardian Track!";
+                        String secure_msg="Seems the location service is turned OFF on the target device.\n\nSent by Guardian Track!";
                         if(From.contains("+")){
                             smsManager.sendTextMessage(From, null, secure_msg, null, null);
                         }

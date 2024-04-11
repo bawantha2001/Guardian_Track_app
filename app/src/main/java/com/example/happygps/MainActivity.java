@@ -193,7 +193,7 @@ public class MainActivity extends AppCompatActivity{
             }
             locationProviderEnabled();
         }
-        else nolocationTriggers.setText("No location triggers");
+        else nolocationTriggers.setText("No location triggers\nPress +CREATE to create one");
     }
 
     @Override
